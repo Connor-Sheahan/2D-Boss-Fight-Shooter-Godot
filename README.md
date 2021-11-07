@@ -5,6 +5,6 @@ The game is a 2D single room boss fight. You use WASD to move and spacebar to ju
 The game is included as an executable, and the scripts are included as .txt files in the "Scripts" folder.
 This is one of the games that I am most proud of, especially due to the fact that I also made all the art for this project.
 
-
+[title image](image.png)
 
 
