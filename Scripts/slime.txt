@@ -1,0 +1,83 @@
+# Parent class
+extends KinematicBody2D
+
+# Member variables
+const GRAVITY = 2000
+const SPEED = 300
+const JUMP = -600
+var health 
+var velocity = Vector2(0,0)
+var collision
+var accel
+
+# Called when the node enters the scene tree for the first time.
+# pre: none
+# post: health sets
+func _ready():
+	health = 2
+
+# Sets position
+# pre: none
+# post: sets position
+func start_at(x):
+	position = x
+
+# Called every frame
+# pre: none
+# post: destroys node if health reaches 0
+func _process(delta):
+	if health < 1:
+		queue_free()
+		
+# Called every frame
+# pre: none
+# post: controls physics
+func _physics_process(delta):
+	
+	# Explained in player script
+	accel = GRAVITY 
+	
+	velocity.y += accel * delta
+	
+	collision = move_and_collide(velocity * delta)
+	
+	if collision: 	
+		velocity.x = 0	     
+		var normal = collision.normal # Retrives normal of collision		
+		velocity = velocity.slide(normal) # Non perpendicular direction of normal = 0
+		move_and_slide(velocity) # Moves player with new velocity
+
+# hurts slime
+# pre: none
+# post: health decreases
+func hurt(x):
+	health -= x
+
+# moves 
+# pre: none
+# post: moves slime right and jumps
+func goRight():
+	velocity.x = SPEED
+	velocity.y = JUMP
+
+# moves 
+# pre: none
+# post: moves slime left and jumps
+func goLeft():
+	velocity.x = -SPEED
+	velocity.y = JUMP
+
+# Called when timer runs out
+# pre: none
+# post: moves right or left depending on player position
+func _on_timer_timeout():
+	if get_parent().get_parent().get_parent().get_node('player').position > position:
+		goRight()
+	else: 
+		goLeft()
+
+# Moves slime
+# pre: none
+# post: slime jump rly high
+func fly():
+	velocity.y = -1400

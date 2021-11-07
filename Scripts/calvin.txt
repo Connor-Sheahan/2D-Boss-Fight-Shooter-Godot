@@ -1,0 +1,150 @@
+# Parent Class
+extends KinematicBody2D
+
+# Member variables
+const GRAVITY = 1700
+
+var run_speed = 200
+export (PackedScene) var slime
+var health 
+var velocity = Vector2(0,0)
+var collision
+var accel
+var spawn = 0
+var left = false
+var right = false
+var none = true
+var spawn_slimes = true
+var spawn_num = 2
+var count = 0
+
+# Called when node enters scene tree for the first time
+# pre: none
+# post: sets things up
+func _ready():
+	health = 200
+
+# Called ever frame
+# pre: none
+# post: constantly checks for certain conditions 
+func _process(delta):
+	
+	# Changes spawn rate of slimes when health reaches a certain point
+	if health >= 50 and health <= 125:
+		spawn_num = 1
+	
+	# Changes move speed and such when health reaches a certain point
+	if health < 50:
+		run_speed = 400
+		$walkTimer.wait_time = 1.5
+		spawn_slimes = false
+		
+	# Spawns slimes if all conditions are met
+	if spawn_slimes:
+		if spawn == spawn_num:
+			spawn = 0
+			var s = slime.instance()
+			$slime_container.add_child(s)
+			s.start_at(position)
+			
+	# Sets healthbar size depending on current health
+	$healthbar.rect_size.x = health * 0.5
+	
+	# When health is 0, kills self
+	if health < 1:
+		die()
+	
+
+# Called ever frame
+# pre: none
+# post: controls physics
+func _physics_process(delta):
+	
+	# Used to move the sprite via booleans
+	if none:
+		velocity.x = 0
+	elif right:
+		velocity.x = run_speed
+	elif left:
+		velocity.x = -run_speed
+	
+	# Gravity always affects accel
+	accel = GRAVITY 
+	
+	# Sets y position movement by y axis acceleration
+	velocity.y += accel * delta
+	
+	# Moves the sprite until it collides 
+	collision = move_and_collide(velocity * delta)
+	
+	# Handles collision
+	if collision: 		# when it collides
+		
+		# If collide with slime, call fly() from slime class, makes slime fly up
+		if collision.collider.get_parent().get_name() == 'slime_container':
+			collision.collider.fly()  
+			
+		   
+		var normal = collision.normal # Retrives normal of collision		
+		velocity = velocity.slide(normal) # Non perpendicular direction of normal = 0
+		move_and_slide(velocity) # Moves player with new velocity
+
+
+# Moves sprite
+# Pre: none
+# post: moves right
+func walkRight():
+	
+	# Logic
+	right = true
+	left = false
+	none = false
+	
+
+	$sprite.animation = "walk" 
+	yield(get_tree().create_timer(1.2), 'timeout') # waits a bit before going on
+	$sprite.animation = "default"
+	velocity.x = 0
+	none = true
+	
+# Moves sprite
+# Pre: none
+# post: moves left
+func walkLeft():
+	
+	# Logic
+	left = true
+	right = false
+	none = false
+	
+	$sprite.animation = "walk"
+	yield(get_tree().create_timer(1.2), 'timeout') # Waits a bit before goin on
+	$sprite.animation = "default"
+	velocity.x = 0
+	none = true
+
+# Called when health < 0
+# Pre: health < 0
+# post: death animation, triggers next boss
+func die():
+	queue_free()
+
+# Gets hurt
+# pre: none
+# post: goes through getting hurt procedure
+func hurt(x):
+	count += 1
+	health -= x
+	if count >= 3:
+		$hit.play()
+		count = 0
+
+# Decides how to move
+# pre: none
+# post: moves either left or right
+func _on_walkTimer_timeout():
+	spawn += 1
+	if get_parent().get_node("player").position > position:
+		walkRight()
+	else: 
+		walkLeft()

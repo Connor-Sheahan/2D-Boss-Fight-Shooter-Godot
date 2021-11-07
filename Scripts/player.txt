@@ -1,0 +1,160 @@
+# Parent class
+extends KinematicBody2D
+
+# Declaring member variables
+const FRICTION = -500
+const GRAVITY = 1700
+const RUN_SPEED = 200
+const MIN_JUMP = -150
+const JUMP = -600
+
+var can_jump = 2 
+var accel
+var velocity = Vector2()
+var move_right
+var move_left
+var movement
+var collision
+var health
+var invincible
+var timer = 0
+var timerVar = 1
+
+# Called when the node enters the scene tree for the first time.
+# pre: none
+# post: health sets
+func _ready():
+	health = 100
+
+# Called only once when input happens
+# pre: input
+# post: controls input
+func _input(event): 
+	
+	# Jumping
+	if event.is_action_pressed("ui_space"):
+		if can_jump > 0:
+			can_jump -= 1
+			velocity.y = JUMP
+	# If space key released, cut jump
+	if event.is_action_released("ui_space"):
+			if velocity.y < MIN_JUMP:
+				velocity.y = MIN_JUMP
+
+# Called every frame
+# pre: none
+# post: controls player
+func _process(delta):
+	
+	# Controls healthbar
+	$healthbar.rect_size.x = health * 0.4
+	
+	# Exits game when health is 0
+	if health < 0:
+		hide()
+		get_tree().quit()
+		
+	# Handling Animation
+	if movement == 1:
+		$sprite.flip_h = false
+	if movement == -1:
+		$sprite.flip_h = true
+	
+	# More animation	
+	if velocity.y < 0:
+		$sprite.animation = "jump_start"
+	elif movement == 0:
+		$sprite.animation = "idle"
+	elif velocity.y > 20:
+		$sprite.animation = "falling"
+	elif movement == -1:
+		$sprite.animation = "running"
+		$sprite.flip_h = true
+	elif movement == 1:
+		$sprite.animation = "running"
+		$sprite.flip_h = false
+	
+	# Makes opaque when not invincible, transluscent when invincible
+	if invincible:
+		modulate = Color(1,1,1, 0.5)
+	else:
+		if timerVar == 1:
+			modulate = Color(1,1,1, 1)
+	
+# Called independantly of framerate (60 times per second)
+# pre: none
+# post: controls player
+func _physics_process(delta):
+	
+	# Making it so character can't stay still for too long by adding to a timer every frame
+	if velocity.x == 0:
+		timer += 1
+	else:
+		timer = 0
+	if timerVar == 1:
+		if timer >= 170:
+			health -= 15
+			timerVar = 0 
+			$timerVartimer.start()
+			modulate = Color(1, 1, 1, 0.5)
+			
+	# Acceleration from gravity stays the same
+	accel = GRAVITY
+	
+	# Gathering Input
+	if Input.is_action_pressed("ui_d"):
+		move_right = 1
+	else:
+		move_right = 0
+	if Input.is_action_pressed("ui_a"):
+		move_left = 1
+	else:
+		move_left = 0
+	
+	# Simple movement calculations
+	movement = move_right - move_left
+	velocity.x = movement * RUN_SPEED
+	
+	# Adding acceleration to velocity 
+	velocity.y += accel * delta
+
+	# Moving player 
+	collision = move_and_collide(velocity * delta)
+
+	
+	if collision: 
+		
+		var normal = collision.normal # Retrives normal of collision
+		
+		if normal == Vector2(0, -1): # If standing on ground, player can jump
+			can_jump = 2
+			
+		if is_instance_valid(collision):	# Logic error handling
+			if collision.collider.get_parent().get_name() == 'slime_container': # if collision w/ slime
+				if not invincible:
+					
+					# Handles what happens when player hits a slime
+					health -= 10
+					invincible = true
+					yield(get_tree().create_timer(0.75), 'timeout')
+					invincible = false
+					
+		if is_instance_valid(collision):	# Logic error handling
+			if collision.collider.get_name() == 'calvin': # if collision with boss
+				if not invincible:
+					
+					# Handles what happens when player hits a slime
+					health -= 20
+					invincible = true
+					yield(get_tree().create_timer(0.75), 'timeout')
+					invincible = false
+		
+		velocity = velocity.slide(normal) # Non perpendicular direction of normal = 0
+		move_and_slide(velocity) # Moves player with new velocity
+
+# Handles what happens when timer runes out
+# pre: none
+# post: sets timerVar to 1 (for logic handling) and changes color
+func _on_timerVartimer_timeout():
+	timerVar = 1
+	modulate = Color(1, 1, 1, 1)

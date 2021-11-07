@@ -1,0 +1,24 @@
+# Parent Class
+extends Sprite
+
+
+# Called when the node enters the scene tree for the first time.
+# pre: none
+# post: starts tween
+func _ready():
+	
+	# Initializes the tween
+	$Tween.interpolate_property(self, 'scale', Vector2(0.5, 0.5), Vector2(0, 0), 1.5, 
+		Tween.TRANS_SINE, Tween.EASE_IN)
+		
+	# Starts the tween after 2 seconds
+	yield(get_tree().create_timer(2), 'timeout')
+	$Tween.start()
+
+# What to do when the tween finishes
+# pre: none
+# post: switches scenes
+func _on_Tween_tween_all_completed():
+	
+	#Switches scenes
+	get_tree().change_scene("res://Scenes/mainMenu.tscn")

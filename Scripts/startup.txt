@@ -1,0 +1,10 @@
+# Parent Class
+extends Node
+
+# Called when node enters scene tree for the first time
+# pre: none
+# post: plays a sound
+func _ready():
+	
+	# Plays sound
+	$AudioStreamPlayer.play()

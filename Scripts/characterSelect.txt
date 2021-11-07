@@ -1,0 +1,14 @@
+# Parent
+extends Control
+
+# What to do when button clicked
+# pre: none
+# post: switches scenes
+func _on_char1_pressed():
+	get_tree().change_scene("res://Scenes/game_brown.tscn")# changes scene
+
+# What to do when button clicked
+# pre: none
+# post: switches scenes
+func _on_char2_pressed():
+	get_tree().change_scene("res://Scenes/game_red.tscn") # Changes scene

@@ -1,0 +1,70 @@
+# Parent
+extends Node2D
+
+# Declaring member variables
+export (PackedScene) var bullet
+onready var bullet_container = get_node("bullet_container")
+var mouse_pos
+var sprite_pos
+var x_dist
+var y_dist
+var direction
+var vertical
+var hypo
+var rotate
+var move
+var shootable = true
+
+# Called every frame
+# pre: none
+# post: controls game
+func _process(delta):
+	
+	# A lot of things I dont want to explain
+	if Input.is_action_pressed("mouse_left"):
+		if shootable:
+			
+			# Retrieving information
+			sprite_pos = $player.position
+			mouse_pos = get_global_mouse_position()
+			
+			
+			direction = mouse_pos.x - sprite_pos.x # Positive = right, negative = left
+			direction = direction / abs(direction)
+			vertical = mouse_pos.y - sprite_pos.y
+			vertical = vertical / abs(vertical) * -1 # Positive = up, negative = down
+			
+			# Calculating hypotoneuse
+			x_dist = abs(sprite_pos.x - mouse_pos.x)
+			y_dist = abs(sprite_pos.y - mouse_pos.y)
+			hypo = sqrt((x_dist * x_dist) + (y_dist * y_dist))
+			
+			# Calculating theta angle for each quarter of the screen
+			if direction == 1 and vertical == 1:
+				rotate = rad2deg((atan2(y_dist, x_dist))) * -1
+			elif direction == 1 and vertical == -1:
+				rotate = rad2deg((atan2(y_dist, x_dist))) 
+			elif direction == -1 and vertical == 1:
+				rotate = -180 - rad2deg((atan2(y_dist, x_dist))) * -1 
+			elif direction == -1 and vertical == -1:
+				rotate = 180 - rad2deg((atan2(y_dist, x_dist))) 
+			
+			# Calculates direction in which to move
+			move = Vector2(x_dist, y_dist)
+			move = move.normalized() 
+			move.x *= direction
+			move.y *= vertical * -1
+			
+			# Creates bullet
+			var b = bullet.instance()
+			bullet_container.add_child(b)
+			b.start_at(sprite_pos, rotate)
+			b.move(move)
+			shootable = false
+			$shootable_timer.start()
+
+# Controls whether player can shoot
+# pre: none
+# post: shootable become true
+func _on_shootable_timer_timeout():
+	shootable = true

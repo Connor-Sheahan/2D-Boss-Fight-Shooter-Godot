@@ -1,0 +1,53 @@
+# Parent Class
+extends Control
+
+
+# Called when the node enters the scene tree for the first time.
+# pre: none
+# post: initalizes tween
+func _ready():
+	# Initializes tween
+	$Tween.interpolate_property(self, 'rect_scale', Vector2(1, 1), Vector2(0, 0), 1.0, 
+		Tween.TRANS_SINE, Tween.EASE_IN)
+	$Tween2.interpolate_property(self, 'rect_scale', Vector2(0, 0), Vector2(1, 1), 1.0, 
+		Tween.TRANS_SINE, Tween.EASE_IN)	
+	
+	# Making it small
+	rect_scale = Vector2(0,0)
+	
+	# Starting tween to enlarge GUI
+	$Tween2.start()
+
+# Starts the game
+# pre: none
+# post: starts game
+func gameStart():
+	
+	# Starting Tween to make GUI dissapear
+	$Tween.start()
+	
+	# Changes scene to game
+	yield(get_tree().create_timer(1), 'timeout')
+	get_tree().change_scene("res://Scenes/characterSelect.tscn")
+
+# What to do when start button pressed 
+# pre: none
+# post: calls gameStart() method
+func _on_startButton_pressed():
+	
+	# Plays tick sound
+	$tick.play()
+	
+	# Calls gameStart method
+	gameStart()
+
+# What to do when quit button pressed
+# pre: none
+# post: quits game
+func _on_quitButton_pressed():
+	
+	$tick.play() # Plays tick sound
+	$Tween.start() # Starts tween
+	yield(get_tree().create_timer(1.1), 'timeout') # Waits 1.1 seconds
+	get_tree().quit() # quits game
+	

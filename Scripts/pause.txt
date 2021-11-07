@@ -1,0 +1,28 @@
+# Parent
+extends Node
+
+# Member varaible
+var x = 1
+
+# Called when the node enters the scene tree for the first time.
+# Pre: none
+# Post: hides pause image, makes it so node does not pause during pause
+func _ready():
+	$paused.hide()
+	pause_mode = Node.PAUSE_MODE_PROCESS
+
+# Called ever frame
+# pre: none
+# post: pauses / unpauses
+func _process(delta):
+	if Input.is_action_just_pressed('ui_cancel'):
+		
+		if x == 1:
+			get_tree().paused = true
+			x = 0
+			$paused.show()
+			
+		elif x == 0:
+			get_tree().paused = false
+			x = 1
+			$paused.hide()

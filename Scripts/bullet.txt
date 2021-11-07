@@ -1,0 +1,47 @@
+# Parent Class
+extends Area2D
+
+# Member variables
+const SPEED = 750
+
+var globalMove = 0
+
+# Called when the node enters the scene tree for the first time.
+# pre: none
+# post: plays sound
+func _ready():
+	$shoot.play()
+
+# Called when the node enters the scene tree for the first time.
+# pre: none
+# post: moves bullet position
+func _process(delta):
+	position += globalMove * SPEED * delta
+
+# Method to set position and rotation
+# pre: a position and rotation
+# post: sets position and rotation
+func start_at(sprite_pos, rotate):
+	position = sprite_pos
+	rotation_degrees = rotate
+
+# Method to set global move
+# pre: an integer
+# post: sets globalmove to argument
+func move(move):
+	globalMove = move
+
+# Called when collision
+# pre: none
+# post: destroys self after inflicting damage or smth else
+func _on_bullet_body_entered(body):
+	
+	# Checks what it collides with a decides which action to take
+	if body.get_name() == 'calvin':
+		body.hurt(1)
+		queue_free()
+	elif body.get_parent().get_name() == 'slime_container':
+		body.hurt(1)
+		queue_free()
+	elif body.get_name() != 'player':
+		queue_free()
